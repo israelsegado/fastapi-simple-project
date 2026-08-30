@@ -4,13 +4,13 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException
 
 class Address(BaseModel):
-    ciudad: str
-    codigo_postal: int
+    ciudad: str = Field(min_length=1, max_length=50)
+    codigo_postal: int = Field(ge=10000, le=99999)
 
 class UserCreate(BaseModel):
-    nombre: str
+    nombre: str = Field(min_length=1, max_length=50)
     email: EmailStr
-    edad: int
+    edad: int = Field(ge=0)
     direccion: Optional[Address] = None
 
 class UserResponse(BaseModel):
