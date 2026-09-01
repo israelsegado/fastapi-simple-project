@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator, model_validator
 from typing import Optional
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
@@ -26,7 +26,17 @@ class UserResponse(UserBase):
     updated_at: Optional[datetime] = None
 
 class UserCreate(UserBase):
-    pass
+    @model_validator(mode='after')
+    def validateAddress(self):
+        if self.direccion:
+            if self.direccion.ciudad is not None and self.direccion.codigo_postal is not None:
+                return self
+            elif (self.direccion.ciudad is None and self.direccion.codigo_postal is not None) or (self.direccion.ciudad is not None and self.direccion.codigo_postal is None):
+                raise ValueError("You must write both city and postal code.")
+            else:
+                return self
+        else:
+            return self
 
 class UserUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=50)
