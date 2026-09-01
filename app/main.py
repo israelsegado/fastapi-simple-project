@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator
 from typing import Optional
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
@@ -12,6 +12,11 @@ class UserBase(BaseModel):
     email: EmailStr
     edad: int = Field(ge=18)
     direccion: Optional[Address] = None
+
+    @field_validator('email', mode='before')
+    @classmethod
+    def validateEmail(cls, mail: EmailStr):
+        return mail.strip().lower()
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
