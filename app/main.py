@@ -13,11 +13,15 @@ class UserBase(BaseModel):
     edad: int = Field(ge=18)
     direccion: Optional[Address] = None
 
-class UserResponse(BaseModel):
+class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    userCreate: UserBase
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+class UserCreate(UserBase):
+    pass
 
 class UserUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=50)
@@ -25,11 +29,14 @@ class UserUpdate(BaseModel):
     edad: Optional[int] = Field(None, ge=18)
     direccion: Optional[Address] = None
 
+class UserDB(UserBase):
+    pass
 
-user_db: list[UserResponse] =[
-    UserResponse(id=1, userCreate=UserBase(nombre="John", email="ej@gmail.com", edad=34), created_at="2025-05-12"),
-    UserResponse(id=2, userCreate=UserBase(nombre="Jane", email="ej2@gmail.com", edad=23), created_at="2025-09-12")
-    ]
+
+user_db: list[UserResponse] = [
+    UserResponse(id=1, nombre="John", email="ej@gmail.com", edad=34, created_at=datetime(2025,5,12), updated_at=None),
+    UserResponse(id=2, nombre="Jane", email="ej2@gmail.com", edad=23, created_at=datetime(2025,9,12), updated_at=None)
+]
 
 app = FastAPI()
 
@@ -44,9 +51,13 @@ def listUsers():
 
 # función para crear usuarios
 @app.post("/users", status_code=201, response_model=UserResponse)
-def createUser(user: UserBase):
-    new_id = max(u.id for u in user_db) + 1
-    new_user = UserResponse(id=new_id, userCreate=user, created_at=datetime.now())
+def createUser(user: UserCreate):
+    new_user = UserResponse(
+        id=max(u.id for u in user_db) + 1,
+        **user.model_dump(),
+        created_at=datetime.now(),
+        updated_at=None
+    )
     user_db.append(new_user)
     return new_user
 
@@ -63,23 +74,17 @@ def getUser(user_id: int):
 def updateUser(user_id: int, changes: UserUpdate):
     for i, user in enumerate(user_db):
         if user.id == user_id:
-            update_data = changes.model_dump(exclude_unset=True)
-            
+            update_data = changes.model_dump(exclude_defaults=True)
             user_data = user.model_dump()
-            
-            if update_data:
-                user_create_data = user_data["userCreate"]
-                user_create_data.update(update_data)
-                user_data["userCreate"] = user_create_data
-            
+            user_data.update(update_data)
             user_data["updated_at"] = datetime.now()
-            
+
             updated_user = UserResponse(**user_data)
             user_db[i] = updated_user
+
             return updated_user
 
     raise HTTPException(status_code=404, detail="User not found")
-
 
 @app.delete("/users/{user_id}")
 def deleteUser(user_id: int):
