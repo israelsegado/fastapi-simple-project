@@ -18,12 +18,27 @@ class UserBase(BaseModel):
     def validateEmail(cls, mail: EmailStr):
         return mail.strip().lower()
 
+json_example= {
+    "example": {
+        "id": 1,
+        "nombre": "Juan Pérez",
+        "email": "juan@example.com",
+        "edad": 30,
+        "direccion": {
+            "ciudad": "Madrid",
+            "codigo_postal": 28001
+            },
+        "created_at": "2026-01-15T10:30:00Z",
+        "updated_at": "2026-01-15T12:45:00Z"
+        }
+    }
+
 class UserResponse(UserBase):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True, json_schema_extra=json_example)
 
     id: int
-    created_at: datetime
-    updated_at: Optional[datetime] = None
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
 
 class UserCreate(UserBase):
     @model_validator(mode='after')
