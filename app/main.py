@@ -1,17 +1,30 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator, model_validator
-from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator, model_validator, BeforeValidator
+from typing import Optional, Annotated
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
+import re
 
 class Address(BaseModel):
     ciudad: str = Field(min_length=1, max_length=50)
     codigo_postal: int = Field(ge=10000, le=99999)
+
+def normalize_phone(value: str) -> str:
+    digits = re.sub(r'\D', '', value)
+    if len(digits) == 9:
+        return f"+34{digits}"
+    elif len(digits) == 11 and digits.startswith('34'):
+        return f"+{digits}"
+    else:
+        raise ValueError('Phone must be 9 digits, or 11 starting with 34')
+
+PhoneNumber = Annotated[str, BeforeValidator(normalize_phone)]
 
 class UserBase(BaseModel):
     nombre: str = Field(min_length=1, max_length=50)
     email: EmailStr
     edad: int = Field(ge=18)
     direccion: Optional[Address] = None
+    telefono: Optional[PhoneNumber] = None
 
     @field_validator('email', mode='before')
     @classmethod
@@ -64,7 +77,7 @@ class UserDB(UserBase):
 
 
 user_db: list[UserResponse] = [
-    UserResponse(id=1, nombre="John", email="ej@gmail.com", edad=34, created_at=datetime(2025,5,12), updated_at=None),
+    UserResponse(id=1, nombre="John", email="ej@gmail.com", edad=34, telefono="618302984", created_at=datetime(2025,5,12), updated_at=None),
     UserResponse(id=2, nombre="Jane", email="ej2@gmail.com", edad=23, created_at=datetime(2025,9,12), updated_at=None)
 ]
 
