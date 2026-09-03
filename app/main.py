@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, ValidationError, field_validator, model_validator, BeforeValidator
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Generic, TypeVar, List
 from datetime import datetime
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 import re
+import math
 
 class Address(BaseModel):
     ciudad: str = Field(min_length=1, max_length=50)
@@ -41,6 +42,7 @@ json_example= {
             "ciudad": "Madrid",
             "codigo_postal": 28001
             },
+        "telefono": "618302964",
         "created_at": "2026-01-15T10:30:00Z",
         "updated_at": "2026-01-15T12:45:00Z"
         }
@@ -75,6 +77,14 @@ class UserUpdate(BaseModel):
 class UserDB(UserBase):
     pass
 
+T = TypeVar("T")
+
+class Page(BaseModel, Generic[T]):
+    items: List[T]
+    total: int
+    page: int
+    size: int
+    pages: int
 
 user_db: list[UserResponse] = [
     UserResponse(id=1, nombre="John", email="ej@gmail.com", edad=34, telefono="618302984", created_at=datetime(2025,5,12), updated_at=None),
@@ -88,9 +98,23 @@ def root():
     return {"message": "Enter a valid user"}
 
 # función para obtener una lista de todos los usuarios
-@app.get("/users")
-def listUsers():
-    return user_db
+@app.get("/users", response_model=Page[UserResponse])
+def listUsers(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100)
+):
+    total = len(user_db)
+    pages = math.ceil(total / size)
+    skip = (page - 1) * size
+    items = user_db[skip:skip+size]
+
+    return Page[UserResponse](
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=pages
+    )
 
 # función para crear usuarios
 @app.post("/users", status_code=201, response_model=UserResponse)
