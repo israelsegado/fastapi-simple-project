@@ -12,19 +12,30 @@ services:
       - ./postgres-data:/var/lib/postgresql
     ports:
       - "${POSTGRES_PORT}:5432"
-  
+    networks:
+      - pgnetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   backend:
     build: .
     restart: always
     container_name: python-container
     env_file: .env
     environment:
-      POSTGRES_URL: ${POSTGRES_URL}
-    depends_on: 
-      - db
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - /app/.venv
+    networks:
+      - pgnetwork
 
   pgadmin:
     image: dpage/pgadmin4:8.4
@@ -40,8 +51,14 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - pgnetwork
 
-    
+volumes:
+  pgadmin_data:
+    driver: local
+
+networks:
+  pgnetwork:
