@@ -47,7 +47,7 @@ services:
       PGADMIN_LISTEN_ADDRESS: ${PGADMIN_ADDRESS}
       PGADMIN_LISTEN_PORT: ${PGADMIN_PORT}
     ports:
-      - "80:${PGADMIN_PORT}"
+      - "${PGADMIN_PORT}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
