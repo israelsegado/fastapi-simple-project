@@ -30,7 +30,7 @@ class UserService:
         new_user = User(**user.model_dump())
         db.add(new_user)
         db.commit()
-        db.refresh()
+        db.refresh(new_user)
         return UserResponse.model_validate(new_user)
 
     def update_user(self, user_id: int, changes: UserUpdate, db: Session) -> Optional[UserResponse]:
