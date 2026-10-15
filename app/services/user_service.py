@@ -33,18 +33,22 @@ class UserService:
         db.refresh()
         return UserResponse.model_validate(new_user)
 
-    def update_user(self, user_id: int, changes: UserUpdate) -> Optional[UserResponse]:
-        for i, user in enumerate(user_db):
-            if user.id == user_id:
-                update_data = changes.model_dump(exclude_defaults=True)
-                user_data = user.model_dump()
-                user_data.update(update_data)
-                user_data["updated_at"] = datetime.now()
+    def update_user(self, user_id: int, changes: UserUpdate, db: Session) -> Optional[UserResponse]:
+        db_user = db.query(User).filter(User.id == user_id).first()
 
-                updated_user = UserResponse(**user_data)
-                user_db[i] = updated_user
-                return updated_user
-        return None
+        if not db_user:
+            return None
+
+        update_user = changes.model_dump(exclude_unset=True)
+        for field, value in update_user.items():
+            setattr(db_user, field, value)
+
+        db_user.updatedAt = datetime.now()
+        db.commit()
+        db.refresh(db_user)
+
+        return UserResponse.model_validate(db_user)
+
 
     def delete_user(self, user_id: int) -> bool:
         for i, user in enumerate(user_db):
