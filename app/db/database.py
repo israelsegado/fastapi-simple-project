@@ -20,12 +20,5 @@ class User(Base):
     nombre = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
 
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-new_user = User(id=1, nombre="ejemplo", age=20)
-session.add(new_user)
-
-session.commit()
+def init_db():
+    Base.metadata.create_all(engine)
