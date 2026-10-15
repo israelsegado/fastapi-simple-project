@@ -25,7 +25,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, onupdate=datetime.now)
 
-    addresses = relationship('Address', back_populates='user', uselist=False)
+    addresses = relationship('Address', back_populates='user', uselist=False, lazy='joined')
 
 class Address(Base):
     __tablename__ = "addresses"
