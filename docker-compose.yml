@@ -26,14 +26,17 @@ services:
     restart: always
     container_name: python-container
     env_file: .env
+    ports:
+      - "8000:8000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - .:/app
-      - /app/.venv
+      - ./app:/app/app
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./uv.lock:/app/uv.lock
     networks:
       - pgnetwork
 

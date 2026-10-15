@@ -1,9 +1,10 @@
-.env
-.env*
-*.log
-dist
-coverage
+.venv
+__pycache__
+*.pyc
 .git
-.gitignore
-*.md
+.pytest_cache
+coverage.xml
+*.log
+.env
 postgres-data/
+.venv/
