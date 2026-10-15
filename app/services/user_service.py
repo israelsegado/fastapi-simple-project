@@ -1,17 +1,21 @@
+import math
 from typing import Optional
 from datetime import datetime
-import math
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.schemas.user import UserResponse, UserCreate, UserUpdate, Page
 from app.db.database import User
 
 class UserService:
-    def list_users(self, page: int = 1, size: int = 10) -> Page[UserResponse]:
-        total = len(user_db)
+    def list_users(self, db: Session, page: int = 1, size: int = 10) -> Page[UserResponse]:
+        total = db.query(func.count(User)).scalar()
         pages = math.ceil(total / size)
         skip = (page - 1) * size
-        items = user_db[skip:skip + size]
+
+        users = db.query(User).offset(skip).limit(size).all()
+        items = [UserResponse.model_validate(u) for u in users]
+
         return Page[UserResponse](
             items=items,
             total=total,
@@ -45,7 +49,6 @@ class UserService:
         for field, value in update_user.items():
             setattr(db_user, field, value)
 
-        db_user.updatedAt = datetime.now()
         db.commit()
         db.refresh(db_user)
 
