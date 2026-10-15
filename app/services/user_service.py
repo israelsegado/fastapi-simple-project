@@ -20,11 +20,13 @@ class UserService:
             pages=pages
         )
 
-    def get_user(self, user_id: int) -> Optional[UserResponse]:
-        for user in user_db:
-            if user.id == user_id:
-                return user
-        return None
+    def get_user(self, user_id: int, db: Session) -> Optional[UserResponse]:
+        db_user = db.query(User).filter(User.id == user_id).first()
+
+        if not db_user:
+            return None
+
+        return UserResponse.model_validate(db_user)
 
     def create_user(self, user: UserCreate, db: Session) -> UserResponse:
         new_user = User(**user.model_dump())
