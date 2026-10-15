@@ -9,7 +9,7 @@ from app.db.database import User
 
 class UserService:
     def list_users(self, db: Session, page: int = 1, size: int = 10) -> Page[UserResponse]:
-        total = db.query(func.count(User)).scalar()
+        total = db.query(func.count(User.id)).scalar()
         pages = math.ceil(total / size)
         skip = (page - 1) * size
 
