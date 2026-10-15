@@ -50,9 +50,13 @@ class UserService:
         return UserResponse.model_validate(db_user)
 
 
-    def delete_user(self, user_id: int) -> bool:
-        for i, user in enumerate(user_db):
-            if user.id == user_id:
-                del user_db[i]
-                return True
-        return False
+    def delete_user(self, user_id: int, db: Session) -> bool:
+        db_user = db.query(User).filter(User.id == user_id).first()
+
+        if not db_user:
+            return False
+
+        db.delete(db_user)
+        db.commit()
+
+        return True
