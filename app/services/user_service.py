@@ -49,6 +49,7 @@ class UserService:
         for field, value in update_user.items():
             setattr(db_user, field, value)
 
+        db_user.updatedAt = datetime.now()
         db.commit()
         db.refresh(db_user)
 
