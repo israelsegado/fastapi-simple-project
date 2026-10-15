@@ -1,13 +1,10 @@
 from typing import Optional
 from datetime import datetime
 import math
+from sqlalchemy.orm import Session
 
 from app.schemas.user import UserResponse, UserCreate, UserUpdate, Page
-
-user_db: list[UserResponse] = [
-    UserResponse(id=1, nombre="John", email="ej@gmail.com", edad=34, telefono="618302984", created_at=datetime(2025,5,12), updated_at=None),
-    UserResponse(id=2, nombre="Jane", email="ej2@gmail.com", edad=23, created_at=datetime(2025,9,12), updated_at=None)
-]
+from app.db.database import User
 
 class UserService:
     def list_users(self, page: int = 1, size: int = 10) -> Page[UserResponse]:
@@ -29,15 +26,12 @@ class UserService:
                 return user
         return None
 
-    def create_user(self, user: UserCreate) -> UserResponse:
-        new_user = UserResponse(
-            id=max(u.id for u in user_db) + 1,
-            **user.model_dump(),
-            created_at=datetime.now(),
-            updated_at=None
-        )
-        user_db.append(new_user)
-        return new_user
+    def create_user(self, user: UserCreate, db: Session) -> UserResponse:
+        new_user = User(**user.model_dump())
+        db.add(new_user)
+        db.commit()
+        db.refresh()
+        return UserResponse.model_validate(new_user)
 
     def update_user(self, user_id: int, changes: UserUpdate) -> Optional[UserResponse]:
         for i, user in enumerate(user_db):
