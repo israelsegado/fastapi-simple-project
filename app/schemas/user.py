@@ -3,10 +3,6 @@ from typing import Optional, Annotated, Generic, TypeVar, List
 from datetime import datetime
 import re
 
-class Address(BaseModel):
-    ciudad: str = Field(min_length=1, max_length=50)
-    codigo_postal: int = Field(ge=10000, le=99999)
-
 def normalize_phone(value: str) -> str:
     digits = re.sub(r'\D', '', value)
     if len(digits) == 9:
@@ -22,7 +18,7 @@ class UserBase(BaseModel):
     nombre: str = Field(min_length=1, max_length=50)
     email: EmailStr
     edad: int = Field(ge=18)
-    direccion: Optional[Address] = None
+    direccion_id: Optional[int] = None
     telefono: Optional[PhoneNumber] = None
 
     @field_validator('email', mode='before')
@@ -36,10 +32,7 @@ json_example = {
         "nombre": "Juan Pérez",
         "email": "juan@example.com",
         "edad": 30,
-        "direccion": {
-            "ciudad": "Madrid",
-            "codigo_postal": 28001
-        },
+        "direccion_id": 1,
         "telefono": "618302964",
         "created_at": "2026-01-15T10:30:00Z",
         "updated_at": "2026-01-15T12:45:00Z"
@@ -54,23 +47,13 @@ class UserResponse(UserBase):
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
 
 class UserCreate(UserBase):
-    @model_validator(mode='after')
-    def validateAddress(self):
-        if self.direccion:
-            if self.direccion.ciudad is not None and self.direccion.codigo_postal is not None:
-                return self
-            elif (self.direccion.ciudad is None and self.direccion.codigo_postal is not None) or (self.direccion.ciudad is not None and self.direccion.codigo_postal is None):
-                raise ValueError("You must write both city and postal code.")
-            else:
-                return self
-        else:
-            return self
+    pass
 
 class UserUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     edad: Optional[int] = Field(None, ge=18)
-    direccion: Optional[Address] = None
+    direccion_id: Optional[int] = None
 
 T = TypeVar("T")
 
