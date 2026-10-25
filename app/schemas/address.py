@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, Generic, TypeVar, List
 from datetime import datetime
 
 class AddressBase(BaseModel):
@@ -18,3 +18,12 @@ class AddressUpdate(BaseModel):
 
 class AddressCreate(AddressBase):
     user_id: int
+
+T = TypeVar("T")
+
+class Page(BaseModel, Generic[T]):
+    items: List[T]
+    total: int
+    page: int
+    size: int
+    pages: int
