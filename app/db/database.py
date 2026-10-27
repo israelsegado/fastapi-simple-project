@@ -33,7 +33,7 @@ class Address(Base):
     id = Column(Integer, primary_key=True)
     ciudad = Column(String(50), nullable=False)
     codigo_postal = Column(Integer, nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
     user = relationship('User', back_populates='addresses', uselist=False)
 
