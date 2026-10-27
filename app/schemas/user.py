@@ -18,8 +18,7 @@ class UserBase(BaseModel):
     nombre: str = Field(min_length=1, max_length=50)
     email: EmailStr
     edad: int = Field(ge=18)
-    direccion_id: Optional[int] = None
-    telefono: Optional[PhoneNumber] = None
+    telefono: Optional[str] = None
 
     @field_validator('email', mode='before')
     @classmethod
@@ -32,7 +31,6 @@ json_example = {
         "nombre": "Juan Pérez",
         "email": "juan@example.com",
         "edad": 30,
-        "direccion_id": 1,
         "telefono": "618302964",
         "created_at": "2026-01-15T10:30:00Z",
         "updated_at": "2026-01-15T12:45:00Z"
@@ -47,13 +45,13 @@ class UserResponse(UserBase):
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
 
 class UserCreate(UserBase):
-    pass
+    telefono: Optional[PhoneNumber] = None
 
 class UserUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     edad: Optional[int] = Field(None, ge=18)
-    direccion_id: Optional[int] = None
+    telefono: Optional[PhoneNumber] = None
 
 T = TypeVar("T")
 
